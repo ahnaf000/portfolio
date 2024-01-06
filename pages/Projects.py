@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import pipeline, BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
 from footer import render_footer
 # st.set_page_config(layout="wide")
@@ -20,7 +20,7 @@ def cat_detector():
     st.write("## Cat Detector Project")
     st.write("Upload an image of a cat and the model will classify if it's a cat or not.")
 
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"], key="cat_detector_uploader")
     if uploaded_file is not None:
         # Convert the file to an image
         image = Image.open(uploaded_file).convert('RGB')
@@ -49,6 +49,44 @@ def cat_detector():
             output_statement = f"It is a {predicted_label} and I am {confidence_percent:.2f}% confident."
             st.write(output_statement)
 
+@st.cache_resource
+def load_image_captioning_model():
+    # source: https://huggingface.co/Salesforce/blip-image-captioning-large
+    # processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
+    # model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large")
+    # return processor, model
+
+    image_to_text_model = pipeline("image-to-text", model="nlpconnect/vit-gpt2-image-captioning")
+    return image_to_text_model
+    
+
+def image_captioning():
+    st.write("## Image Captioning Project")
+    st.write("Upload an image and the model will generate a caption for it.")
+
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"], key="image_captioning_uploader")
+    if uploaded_file is not None:
+        # Convert the file to an image
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Uploaded Image.', use_column_width=True)
+        
+        # Button to generate caption for the image
+        if st.button('Generate Caption'):
+            model = load_image_captioning_model()
+            result = model(image)
+
+
+            st.write(result[0]['generated_text'])
+            # # Load the model only after clicking the button
+            # processor, model = load_image_captioning_model()
+            # # Process the image and generate the caption
+            # inputs = processor(images=image, return_tensors="pt")
+            # outputs = model.generate(**inputs)
+            # caption = processor.decode(outputs[0], skip_special_tokens=True)
+            # st.write("Caption:", caption)
+
+
+
 # Function to display the Projects page
 def render_projects():
     st.title("Projects")
@@ -58,9 +96,9 @@ def render_projects():
     with st.expander("Cat Detector Project", expanded=False):
         cat_detector()  # The model will load when this expander is opened
 
-    # You can add additional projects in a similar manner
-    with st.expander("Another Machine Learning Project"):
-        st.write("Description and functionality for another ML project will go here.")
+    # Use Streamlit expanders for each project
+    with st.expander("Image Captioning Project", expanded=False):
+        image_captioning()  # The model will load when this expander is opened
 
     # Add more expanders for each additional project you want to include
 
