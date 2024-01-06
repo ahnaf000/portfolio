@@ -1,7 +1,7 @@
 import streamlit as st
 #from pages import About, LearnWithMe, Projects
 from footer import render_footer
-st.set_page_config(layout="wide")
+#st.set_page_config(layout="wide")
 def main():
     
     st.title("Welcome to My Portfolio!")
