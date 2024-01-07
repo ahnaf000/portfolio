@@ -108,8 +108,49 @@ def pdf_merger():
                 st.success("Done! Click below to download the merged PDF.")
                 st.download_button(label="Download Merged PDF", data=merged_pdf, file_name="merged.pdf", mime='application/pdf')
 
+def pdf_splitter():
+    def split_pdf(input_pdf, page_ranges):
+        from PyPDF2 import PdfReader, PdfWriter
+        from io import BytesIO
+        pdf_reader = PdfReader(input_pdf)
+        pdf_writer = PdfWriter()
 
-       
+        for page_range in page_ranges:
+            if '-' in page_range:
+                start, end = map(int, page_range.split('-'))
+                for page in range(start, end + 1):
+                    try:
+                        pdf_writer.add_page(pdf_reader.pages[page - 1])
+                    except IndexError:
+                        st.error(f"Page {page} is out of range.")
+                        return None
+            else:
+                try:
+                    page = int(page_range)
+                    pdf_writer.add_page(pdf_reader.pages[page - 1])
+                except IndexError:
+                    st.error(f"Page {page} is out of range.")
+                    return None
+
+        output_pdf = BytesIO()
+        pdf_writer.write(output_pdf)
+        output_pdf.seek(0)
+        return output_pdf
+
+    st.write('## PDF Splitter')
+    st.write("Hi there! I'm the PDF Splitter. Upload a PDF and I'll extract the pages you want for you!")
+
+    uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
+
+    if uploaded_file:
+        page_numbers = st.text_input("Enter page ranges to extract (e.g., '1-3, 5, 7-9')")
+
+        if st.button('Split PDF'):
+            page_ranges = [range.strip() for range in page_numbers.split(',')]
+            result_pdf = split_pdf(uploaded_file, page_ranges)
+            if result_pdf:
+                st.success("Done! Click below to download the split PDF.")
+                st.download_button(label="Download Split PDF", data=result_pdf, file_name="split.pdf", mime='application/pdf')
 
 # Function to display the Projects page
 def render_projects():
@@ -131,6 +172,10 @@ def render_projects():
     # Use Streamlit expanders for each project
     with st.expander("PDF Merger App", expanded=False):
         pdf_merger()  # The model will load when this expander is opened
+
+    # Use Streamlit expanders for each project
+    with st.expander("PDF Separator App", expanded=False):
+        pdf_splitter()  # The model will load when this expander is opened
 
     # Add more expanders for each additional project you want to include
 
