@@ -2,3 +2,4 @@ transformers
 tensorflow
 streamlit
 torch
+PyPDF2

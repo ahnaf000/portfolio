@@ -64,6 +64,7 @@ def image_captioning():
 
 @st.cache_resource
 def load_fruit_detector_model():
+    # source: https://huggingface.co/jazzmacedo/fruits-and-vegetables-detector-36?
     model = pipeline("image-classification", model="jazzmacedo/fruits-and-vegetables-detector-36")
     return model
 
@@ -87,7 +88,28 @@ def fruit_detector():
                     st.success(f"I see: {', '.join(descriptions)}")
 
 
+def pdf_merger():
+    st.write("## PDF Merger")
+    st.write("Hi there! I'm the PDF Merger. Upload some PDFs and I'll combine them into a single file for you!")
 
+    uploaded_files = st.file_uploader("Drop some PDFs here and watch me go!", type=["pdf"], accept_multiple_files=True, key="pdf_merger_uploader")
+    if uploaded_files is not None:
+        ordered_files = st.multiselect('Order the PDFs as desired:', uploaded_files, default=uploaded_files, format_func=lambda x: x.name)
+        if st.button('Merge PDFs'):
+            with st.spinner("Merging..."):
+                from PyPDF2 import PdfMerger
+                from io import BytesIO
+                merger = PdfMerger()
+                for pdf in ordered_files:
+                    merger.append(pdf)
+                output = BytesIO()
+                merger.write(output)
+                merged_pdf = output.getvalue()
+                st.success("Done! Click below to download the merged PDF.")
+                st.download_button(label="Download Merged PDF", data=merged_pdf, file_name="merged.pdf", mime='application/pdf')
+
+
+       
 
 # Function to display the Projects page
 def render_projects():
@@ -105,6 +127,10 @@ def render_projects():
     # Use Streamlit expanders for each project
     with st.expander("Fruits Identifier Project", expanded=False):
         fruit_detector()  # The model will load when this expander is opened
+
+    # Use Streamlit expanders for each project
+    with st.expander("PDF Merger App", expanded=False):
+        pdf_merger()  # The model will load when this expander is opened
 
     # Add more expanders for each additional project you want to include
 
